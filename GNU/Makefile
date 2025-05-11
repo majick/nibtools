@@ -1,8 +1,9 @@
 #
 # Makefile for building various nibtools executables
 #
-# Build targets are:  dos(djgpp) win32(cygwin) linux
+# Build targets are:  dos(djgpp) win32(cygwin) unix
 #
+# non-unix targets are no longer maintained, tested, or cared about.
 
 # If building for DOS, change this to the path to your DJGPP install
 DJGPP_PATH=	c:/djgpp
@@ -11,33 +12,41 @@ DJGPP_PATH=	c:/djgpp
 #CC=i686-w64-mingw32-gcc
 # To build standalone 64-bit binaries for Windows using Cygwin, you'll need this
 #CC=x86_64-w64-mingw32-gcc
-# Stadard BSD/Linux/Mac should be default
-CC=gcc
 
-# If building for Linux or Windows, change this to the base path to your
-# opencbm includes and libraries
-CBM_LNX_PATH=	/usr/local
+# CC=gcc unless specified. It's actually an alias for clang on macOS.
+CC ?= gcc
+
+# If building for Linux or Windows, set this to the base path to your
+# opencbm includes and libraries. If not set, assume /usr/local for whatever
+# reason. *shrug*!?
+CBM_LNX_PATH ?=	/usr/local
 #CBM_WIN_PATH=	c:\cbm4win
 CBM_WIN_PATH=	../
 
 # Default compile flags.  Be careful with optimization (-O2)
-CFLAGS=${WARNS}
-#CFLAGS+=-DSVN=$(shell svn info | grep Revision | sed 's/Revision: //') 
-#CFLAGS+=-DSVN=$(shell svnversion | sed -e 's/.*://' -e 's/[A-Z]*$//')
+# if CFLAGS is already set, don't do whatever this is.
+CFLAGS 	?= ${WARNS}
 
 # cl65 defs, contributed by Ullrich von Bassewitz <uz(at)musoftware(dot)de>
 # (cc65 >= 2.6 required)
-CA65        = ca65
-LD65        = ld65
+# If not set, use whatever's in the path. This is so you can use
+# something like CA65=$(brew --prefix cc65)/bin/ca65 or whatever.
+CA65        ?= ca65
+LD65        ?= ld65
 CA65_FLAGS  =  --feature pc_assignment
 
+# call make with INSTALL_PREFIX=/usr/local or something if you want.
+INSTALL_PREFIX ?= ${HOME}
+
 # No user-configurable parts below
+# bwahahaha bullshit.
 
 .SUFFIXES: .asm .bin .inc
-.PHONY: linux
+.PHONY: unix
 
 usage:
-	@echo Please specify a target: dos win32 linux clean distclean
+	@echo Please specify a target: dos win32 unix clean distclean
+	@echo for macOS, also specify CBM_LNX_PATH=$(brew --prefix opencbm)
 
 # Arch-specific targets
 dos:
@@ -49,9 +58,9 @@ dos:
 		-f GNU/Makefile \
 		nibread nibwrite nibconv nibscan nibrepair
 
-linux:
+unix:
 	${MAKE} CFLAGS="-I include/LINUX/ -I ${CBM_LNX_PATH}/include ${CFLAGS}  -std=c99" \
-		LDFLAGS="-L${CBM_LNX_PATH}/lib -lopencbm" \
+		LDFLAGS="${CFLAGS} -L${CBM_LNX_PATH}/lib -lopencbm" \
 		-f GNU/Makefile \
 		nibread nibwrite nibconv nibscan nibrepair nibsrqtest
 
@@ -70,6 +79,8 @@ win64:
 		nibread nibwrite nibconv nibscan nibrepair nibsrqtest
 
 # Warning level.  Don't reduce, fix your new code instead.
+# AHAHAHAHA this thing throws so many warnings already there's no reason for that
+# attitude
 WARNS= -W -Wall -Wstrict-prototypes -Wno-unused-parameter -Wpointer-arith 
 
 # Common objects
@@ -111,6 +122,10 @@ nibrepair: ${OBJ} nibrepair.o
 nibscan: ${OBJ} nibscan.o
 	${CC} -o nibscan$(EXE) nibscan.o ${OBJ} $(LDFLAGS)
 
+install: ${PROG}
+	mkdir -p ${INSTALL_PREFIX}/bin
+	cp ${PROG} ${INSTALL_PREFIX}/bin
+	
 clean:
 	${RM} *.o ${MNIB_BIN} *.bin *.inc nib*.exe
 
