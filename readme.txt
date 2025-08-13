@@ -1,3 +1,7 @@
+I AM DONE WITH GITHUB.
+CODEBERG REPO IS AT: https://codeberg.org/majick/nibtools
+
+
 README.TXT for the NIBTOOLS utilities (Updated 2/16/2014)
 
 homepage: http://c64preservation.com/nibtools
@@ -297,7 +301,7 @@ Writing back disk images to a real disk:
    - Chris Link            
    - Jerry Kurtz
    - Wolfgang Moser       
-   - H†kan Sundell         
+   - HÂ†kan Sundell         
    - Nicolas Welte         
    - Tim Schurman
    - Spiro Trikaliotis
@@ -305,4 +309,5 @@ Writing back disk images to a real disk:
    - Joerg Droege
    - Quader
    - Jani
+
    - LordCrass
